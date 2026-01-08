@@ -23,21 +23,21 @@ export default function Globe3D() {
   return (
     <group ref={globeRef}>
       {/* Main Earth sphere with texture */}
-      <Sphere args={[2, 64, 64]}>
+      <Sphere args={[2.5, 64, 64]}>
         <meshStandardMaterial
           map={earthTexture}
           metalness={0.1}
-          roughness={0.8}
+          roughness={0.9}
         />
       </Sphere>
 
       {/* Wireframe grid overlay */}
-      <Sphere args={[2.02, 32, 32]}>
+      <Sphere args={[2.52, 32, 32]}>
         <meshBasicMaterial
-          color="#3b82f6"
+          color="#6366f1"
           wireframe
           transparent
-          opacity={0.15}
+          opacity={0.08}
         />
       </Sphere>
     </group>

@@ -7,7 +7,7 @@ import { CryptoData } from '@/types/crypto';
 import Globe3D from './Globe3D';
 import CoinOrbit from './CoinOrbit';
 import Stars from './Stars';
-import PriceTicker from './PriceTicker';
+import PriceCards from './PriceCards';
 import AIChatPanel from './AIChatPanel';
 
 function CameraController({ selectedCoin, onZoomComplete }: { selectedCoin: CryptoData | null; onZoomComplete: () => void }) {
@@ -94,13 +94,12 @@ export default function CommandCenter() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"></div>
-            <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border border-cyan-500/20 mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-2 border-[#1f1f28] border-t-indigo-500 mx-auto mb-4"></div>
           </div>
-          <p className="text-cyan-400 font-medium">Initializing Command Center...</p>
+          <p className="text-gray-400 font-medium text-sm">Loading market data...</p>
         </div>
       </div>
     );
@@ -110,14 +109,14 @@ export default function CommandCenter() {
   const orbitSpeeds = [0.005, 0.004, 0.006, 0.003, 0.007];
 
   return (
-    <div className="relative w-full h-screen bg-black overflow-hidden">
-      {/* Price Ticker */}
-      <PriceTicker cryptoData={cryptoData} />
+    <div className="relative w-full h-screen bg-[#0a0a0f] overflow-hidden">
+      {/* Price Cards */}
+      <PriceCards cryptoData={cryptoData} />
 
       {/* 3D Scene */}
       <Canvas
-        camera={{ position: [0, 0, 10], fov: 75 }}
-        className="w-full h-full cursor-pointer"
+        camera={{ position: [0, 0, 8], fov: 75 }}
+        className="w-full h-full"
         onClick={(e) => {
           // Only close panel if clicking on the background (stars or empty space)
           if (e.eventObject === e.object && showPanel) {
@@ -154,40 +153,6 @@ export default function CommandCenter() {
         />
       </Canvas>
 
-      {/* Bottom Overlay - Trading Volume */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent backdrop-blur-xl pointer-events-none z-40">
-        <div className="max-w-4xl mx-auto bg-black/50 backdrop-blur-md border border-cyan-500/30 rounded-2xl p-6">
-          <h3 className="text-xs font-bold text-cyan-400 uppercase tracking-wider mb-4">GLOBAL TRADING ACTIVITY</h3>
-          <div className="flex gap-3 items-end h-20">
-            {cryptoData.map((coin) => {
-              const isPositive = coin.change24h >= 0;
-              const maxVolume = Math.max(...cryptoData.map(c => c.volume24h));
-              const heightPercent = (coin.volume24h / maxVolume) * 100;
-              const intensity = Math.min((coin.volume24h / maxVolume) * 100, 100);
-
-              return (
-                <div key={coin.id} className="flex-1 flex flex-col items-center gap-1">
-                  <div
-                    className="w-full rounded-t-lg transition-all duration-500 animate-pulse"
-                    style={{
-                      height: `${heightPercent}%`,
-                      backgroundColor: isPositive
-                        ? `rgba(16, 185, 129, ${intensity / 100})`
-                        : `rgba(239, 68, 68, ${intensity / 100})`,
-                      boxShadow: isPositive
-                        ? `0 0 20px rgba(16, 185, 129, ${intensity / 200})`
-                        : `0 0 20px rgba(239, 68, 68, ${intensity / 200})`,
-                    }}
-                    title={`${coin.symbol}: $${(coin.volume24h / 1000000000).toFixed(2)}B volume`}
-                  />
-                  <span className="text-xs text-gray-400 font-mono font-medium">{coin.symbol}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
       {/* AI Chat Panel */}
       <AIChatPanel
         isOpen={showPanel}
@@ -198,13 +163,11 @@ export default function CommandCenter() {
 
       {/* Title Overlay */}
       {!selectedCoin && (
-        <div className="fixed top-20 left-0 right-0 text-center pointer-events-none z-40">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-cyan-400 mb-4 tracking-wider" style={{ textShadow: '0 0 20px rgba(0, 255, 255, 0.5)' }}>
-            CRYPTO COMMAND
-            <br />
-            CENTER
+        <div className="fixed top-32 left-0 right-0 text-center pointer-events-none z-40">
+          <h1 className="text-4xl font-semibold text-white mb-2 tracking-tight">
+            Market Overview
           </h1>
-          <p className="text-gray-400 text-lg font-medium">Click any orbiting coin for AI analysis</p>
+          <p className="text-sm text-gray-500">Select a cryptocurrency for AI-powered insights</p>
         </div>
       )}
     </div>

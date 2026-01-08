@@ -39,58 +39,51 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick }: Co
   });
 
   const isPositive = coin.change24h >= 0;
-  const glowColor = isPositive ? '#10b981' : '#ef4444';
+  const coinColor = isPositive ? '#10b981' : '#ef4444';
 
   return (
     <group ref={coinRef}>
       {/* Main coin sphere */}
       <Sphere
-        args={[0.3, 32, 32]}
+        args={[0.25, 32, 32]}
         onClick={(e) => {
           e.stopPropagation();
           onClick();
         }}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
-        scale={hovered ? 1.2 : 1}
+        scale={hovered ? 1.15 : 1}
       >
         <meshStandardMaterial
-          color={glowColor}
-          emissive={glowColor}
-          emissiveIntensity={hovered ? 1.2 : 0.6}
-          metalness={0.9}
-          roughness={0.1}
+          color={coinColor}
+          emissive={coinColor}
+          emissiveIntensity={hovered ? 0.4 : 0.2}
+          metalness={0.7}
+          roughness={0.3}
         />
       </Sphere>
 
-      {/* Enhanced multi-layer glow effect */}
-      <Sphere args={[0.38, 32, 32]}>
-        <meshBasicMaterial
-          color={glowColor}
-          transparent
-          opacity={hovered ? 0.4 : 0.25}
-          side={THREE.BackSide}
-        />
-      </Sphere>
-
-      <Sphere args={[0.5, 32, 32]}>
-        <meshBasicMaterial
-          color={glowColor}
-          transparent
-          opacity={hovered ? 0.2 : 0.1}
-          side={THREE.BackSide}
-        />
-      </Sphere>
+      {/* Subtle glow effect */}
+      {hovered && (
+        <Sphere args={[0.32, 32, 32]}>
+          <meshBasicMaterial
+            color={coinColor}
+            transparent
+            opacity={0.15}
+            side={THREE.BackSide}
+          />
+        </Sphere>
+      )}
 
       {/* Floating label - always faces camera */}
       <Text
         ref={labelRef}
-        position={[0, 0.6, 0]}
-        fontSize={0.25}
-        color={glowColor}
+        position={[0, 0.5, 0]}
+        fontSize={0.2}
+        color="#ffffff"
         anchorX="center"
         anchorY="middle"
-        outlineWidth={0.02}
+        outlineWidth={0.015}
         outlineColor="#000000"
       >
         {coin.symbol}
@@ -98,16 +91,14 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick }: Co
 
       {/* Detailed tooltip on hover */}
       {hovered && (
-        <Html distanceFactor={10} position={[0, -0.6, 0]}>
-          <div className="bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl px-4 py-3 pointer-events-none shadow-lg">
-            <p className="text-xs font-bold text-slate-900 mb-1">{coin.name}</p>
-            <p className="text-lg font-bold text-slate-900 mb-1">${coin.price.toFixed(2)}</p>
-            <p className={`text-xs font-semibold px-2 py-0.5 rounded-full inline-block ${
-              isPositive
-                ? 'text-emerald-700 bg-emerald-50 border border-emerald-100'
-                : 'text-red-700 bg-red-50 border border-red-100'
+        <Html distanceFactor={10} position={[0, -0.5, 0]}>
+          <div className="bg-[#13131a]/95 backdrop-blur-xl border border-[#1f1f28] rounded-lg px-3 py-2 pointer-events-none shadow-xl">
+            <p className="text-xs font-medium text-gray-400 mb-1">{coin.name}</p>
+            <p className="text-lg font-semibold text-white mb-1">${coin.price.toFixed(2)}</p>
+            <p className={`text-xs font-medium ${
+              isPositive ? 'text-emerald-400' : 'text-red-400'
             }`}>
-              {isPositive ? '↑' : '↓'} {Math.abs(coin.change24h).toFixed(2)}%
+              {isPositive ? '+' : ''}{coin.change24h.toFixed(2)}%
             </p>
           </div>
         </Html>
