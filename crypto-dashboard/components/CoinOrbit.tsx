@@ -75,16 +75,17 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick }: Co
         </Sphere>
       )}
 
-      {/* Floating label - always faces camera */}
+      {/* Floating label - always faces camera, positioned higher to avoid overlap */}
       <Text
         ref={labelRef}
-        position={[0, 0.5, 0]}
-        fontSize={0.2}
+        position={[0, 0.7, 0]}
+        fontSize={0.25}
         color="#ffffff"
         anchorX="center"
         anchorY="middle"
-        outlineWidth={0.015}
+        outlineWidth={0.02}
         outlineColor="#000000"
+        fontWeight={600}
       >
         {coin.symbol}
       </Text>

@@ -41,11 +41,11 @@ function CameraController({ selectedCoin, onZoomComplete }: { selectedCoin: Cryp
     };
 
     if (selectedCoin && !zoomedRef.current) {
-      smoothTransition([5, 2, 5], 800);
+      smoothTransition([7, 3, 7], 800);
       zoomedRef.current = true;
       setTimeout(onZoomComplete, 800);
     } else if (!selectedCoin && zoomedRef.current) {
-      smoothTransition([0, 0, 10], 800);
+      smoothTransition([0, 0, 12], 800);
       zoomedRef.current = false;
     }
   }, [selectedCoin, camera, onZoomComplete]);
@@ -94,28 +94,29 @@ export default function CommandCenter() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-12 w-12 border-2 border-[#1f1f28] border-t-indigo-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-2 border-[#333333] border-t-[#FFED4E] mx-auto mb-4"></div>
           </div>
-          <p className="text-gray-400 font-medium text-sm">Loading market data...</p>
+          <p className="text-[#a0a0a0] font-medium text-sm">Loading market data...</p>
         </div>
       </div>
     );
   }
 
-  const orbitRadii = [3.5, 4, 4.5, 5, 5.5];
+  // Increased orbit radii to accommodate larger globe (40% bigger)
+  const orbitRadii = [5, 5.5, 6, 6.5, 7];
   const orbitSpeeds = [0.005, 0.004, 0.006, 0.003, 0.007];
 
   return (
-    <div className="relative w-full h-screen bg-[#0a0a0f] overflow-hidden">
+    <div className="relative w-full h-screen bg-gradient-to-br from-[#1a0033] via-[#0a0a0a] to-[#1a0a00] overflow-hidden">
       {/* Price Cards */}
       <PriceCards cryptoData={cryptoData} />
 
-      {/* 3D Scene */}
+      {/* 3D Scene - Adjusted camera for larger globe */}
       <Canvas
-        camera={{ position: [0, 0, 8], fov: 75 }}
+        camera={{ position: [0, 0, 12], fov: 75 }}
         className="w-full h-full"
         onClick={(e) => {
           // Only close panel if clicking on the background (stars or empty space)
@@ -146,8 +147,8 @@ export default function CommandCenter() {
         <OrbitControls
           enableZoom={!selectedCoin}
           enablePan={false}
-          minDistance={8}
-          maxDistance={15}
+          minDistance={10}
+          maxDistance={20}
           autoRotate={!selectedCoin}
           autoRotateSpeed={0.5}
         />
@@ -161,13 +162,18 @@ export default function CommandCenter() {
         cryptoData={cryptoData}
       />
 
-      {/* Title Overlay */}
+      {/* Title Overlay - Bryce Digital Style */}
       {!selectedCoin && (
-        <div className="fixed top-32 left-0 right-0 text-center pointer-events-none z-40">
-          <h1 className="text-4xl font-semibold text-white mb-2 tracking-tight">
-            Market Overview
+        <div className="fixed top-48 left-0 right-0 text-center pointer-events-none z-40 px-6">
+          <h1
+            className="text-6xl md:text-7xl font-bold text-white mb-6 leading-tight uppercase"
+            style={{letterSpacing: '0.05em'}}
+          >
+            Crypto Command Center
           </h1>
-          <p className="text-sm text-gray-500">Select a cryptocurrency for AI-powered insights</p>
+          <p className="text-lg text-[#a0a0a0] max-w-2xl mx-auto leading-relaxed">
+            Real-time market data with 3D visualization
+          </p>
         </div>
       )}
     </div>

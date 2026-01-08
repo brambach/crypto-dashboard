@@ -22,8 +22,8 @@ export default function Globe3D() {
 
   return (
     <group ref={globeRef}>
-      {/* Main Earth sphere with texture */}
-      <Sphere args={[2.5, 64, 64]}>
+      {/* Main Earth sphere with texture - 40% larger */}
+      <Sphere args={[3.5, 64, 64]}>
         <meshStandardMaterial
           map={earthTexture}
           metalness={0.1}
@@ -31,10 +31,10 @@ export default function Globe3D() {
         />
       </Sphere>
 
-      {/* Wireframe grid overlay */}
-      <Sphere args={[2.52, 32, 32]}>
+      {/* Wireframe grid overlay - Bryce Digital cyan */}
+      <Sphere args={[3.53, 32, 32]}>
         <meshBasicMaterial
-          color="#6366f1"
+          color="#00D9FF"
           wireframe
           transparent
           opacity={0.08}
