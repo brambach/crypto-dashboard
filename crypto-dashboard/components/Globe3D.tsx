@@ -31,13 +31,13 @@ export default function Globe3D() {
         />
       </Sphere>
 
-      {/* Wireframe grid overlay - Bryce Digital cyan */}
+      {/* Wireframe grid overlay - subtle white */}
       <Sphere args={[3.53, 32, 32]}>
         <meshBasicMaterial
-          color="#00D9FF"
+          color="#ffffff"
           wireframe
           transparent
-          opacity={0.08}
+          opacity={0.04}
         />
       </Sphere>
     </group>
