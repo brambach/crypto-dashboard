@@ -218,6 +218,7 @@ export default function CommandCenter() {
                 onClick={() => handleCoinClick(coin)}
                 index={index}
                 globeScale={currentGlobeScale}
+                hideLabels={showPanel}
               />
             ))}
           </group>

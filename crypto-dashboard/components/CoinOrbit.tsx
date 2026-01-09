@@ -18,9 +18,10 @@ interface CoinOrbitProps {
   onClick: () => void;
   index?: number;
   globeScale?: number;
+  hideLabels?: boolean;
 }
 
-export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, index = 0, globeScale = 1 }: CoinOrbitProps) {
+export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, index = 0, globeScale = 1, hideLabels = false }: CoinOrbitProps) {
   const coinRef = useRef<THREE.Group>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
@@ -159,8 +160,8 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
         />
       </Sphere>
 
-      {/* Stylized HTML label with effects - hidden when behind globe */}
-      {!isBehindGlobe && (
+      {/* Stylized HTML label with effects - hidden when behind globe or when panel is open */}
+      {!isBehindGlobe && !hideLabels && (
         <Html
           position={[0, 0.55, 0]}
           center
@@ -190,8 +191,8 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
         </Html>
       )}
 
-      {/* Tooltip on hover - enhanced design (only when visible) */}
-      {hovered && !isBehindGlobe && (
+      {/* Tooltip on hover - enhanced design (only when visible and panel not open) */}
+      {hovered && !isBehindGlobe && !hideLabels && (
         <Html distanceFactor={10} position={[0, -0.6, 0]} center>
           <div
             className="rounded-xl px-5 py-4 pointer-events-none backdrop-blur-md"
