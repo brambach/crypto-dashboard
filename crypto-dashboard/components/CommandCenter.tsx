@@ -14,28 +14,68 @@ import HeroOverlay from './HeroOverlay';
 import InteractionOverlay from './InteractionOverlay';
 
 // Scroll-driven camera that responds to page scroll
-function ScrollCamera({ scrollProgress, selectedCoin }: { scrollProgress: number; selectedCoin: CryptoData | null }) {
+function ScrollCamera({ scrollProgress, selectedCoin, orbitControlsRef }: {
+  scrollProgress: number;
+  selectedCoin: CryptoData | null;
+  orbitControlsRef: React.RefObject<any>;
+}) {
   const { camera } = useThree();
-  const targetRef = useRef({ y: 2.5, z: 14 });
+  const targetRef = useRef({ y: 1.5, z: 12 });
   const initializedRef = useRef(false);
+  // Start at Math.PI/2 so breathing starts at maximum zoom (sin(π/2) = 1)
+  const timeRef = useRef(Math.PI / 2);
+  const lastDistanceRef = useRef(12);
 
-  useFrame(() => {
+  useFrame((state, delta) => {
     if (!selectedCoin) {
-      // Interpolate camera based on scroll progress
-      // Hero phase: camera higher and farther (more dramatic)
-      // Interaction phase: camera closer and level with globe
-      targetRef.current.y = 2.5 - (scrollProgress * 1.5);  // 2.5 → 1
-      targetRef.current.z = 14 - (scrollProgress * 4);      // 14 → 10
+      // Calculate base position from scroll
+      const baseY = 1.5 - (scrollProgress * 0.7);  // 1.5 → 0.8
+      const baseZ = 12 - (scrollProgress * 2);      // 12 → 10
 
-      // On first frame, set camera position immediately (no lerp)
-      if (!initializedRef.current) {
-        camera.position.y = targetRef.current.y;
-        camera.position.z = targetRef.current.z;
-        initializedRef.current = true;
+      // Calculate current distance from origin
+      const currentDistance = Math.sqrt(
+        camera.position.x ** 2 +
+        camera.position.y ** 2 +
+        camera.position.z ** 2
+      );
+
+      // Check if user is actively dragging (distance changed significantly)
+      const distanceChanged = Math.abs(currentDistance - lastDistanceRef.current) > 0.1;
+
+      if (!distanceChanged) {
+        // Only apply breathing animation when user is not interacting
+        timeRef.current += delta;
+
+        // Subtle breathing: ~6 second cycle, ±0.3 units
+        const breathingOffset = Math.sin(timeRef.current * 0.3) * 0.3;
+
+        // Calculate target distance with breathing
+        const targetDistance = baseZ + breathingOffset;
+
+        // On first frame, set position immediately
+        if (!initializedRef.current) {
+          camera.position.y = baseY;
+          camera.position.z = baseZ + breathingOffset;
+          initializedRef.current = true;
+          lastDistanceRef.current = baseZ + breathingOffset;
+        } else {
+          // Only lerp Y position (up/down with scroll)
+          camera.position.y += (baseY - camera.position.y) * 0.05;
+
+          // Apply breathing by adjusting distance from origin (keeping direction)
+          const newDistance = currentDistance + (targetDistance - currentDistance) * 0.03;
+          if (currentDistance > 0) {
+            camera.position.multiplyScalar(newDistance / currentDistance);
+          }
+          lastDistanceRef.current = newDistance;
+        }
       } else {
-        // Smooth lerp to target
-        camera.position.y += (targetRef.current.y - camera.position.y) * 0.05;
-        camera.position.z += (targetRef.current.z - camera.position.z) * 0.05;
+        // User is interacting, just update Y for scroll
+        camera.position.y += (baseY - camera.position.y) * 0.05;
+        lastDistanceRef.current = currentDistance;
+        // Reset time to prevent sudden jump when breathing resumes
+        const clampedRatio = Math.min(1, Math.max(-1, (currentDistance - baseZ) / 0.3));
+        timeRef.current = Math.asin(clampedRatio);
       }
     }
   });
@@ -94,6 +134,7 @@ export default function CommandCenter() {
   const [showPanel, setShowPanel] = useState(false);
   const [scrollValue, setScrollValue] = useState(0);
   const [hasInteracted, setHasInteracted] = useState(false); // Track if user has clicked a coin
+  const orbitControlsRef = useRef<any>(null);
 
   // Scroll tracking
   const { scrollYProgress } = useScroll();
@@ -103,18 +144,8 @@ export default function CommandCenter() {
     setScrollValue(latest);
   });
 
-  // Globe scale based on scroll (1.0 at start, scales up to 1.25 as you scroll)
-  const globeScale = useTransform(scrollYProgress, [0, 0.5], [1.0, 1.25]);
-  const [currentGlobeScale, setCurrentGlobeScale] = useState(1.0);
-
-  // Initialize globe scale immediately on mount
-  useEffect(() => {
-    setCurrentGlobeScale(globeScale.get());
-  }, [globeScale]);
-
-  useMotionValueEvent(globeScale, 'change', (latest) => {
-    setCurrentGlobeScale(latest);
-  });
+  // Fixed globe scale - no zoom animation
+  const currentGlobeScale = 1.0;
 
   const fetchCryptoData = async () => {
     try {
@@ -192,7 +223,7 @@ export default function CommandCenter() {
 
         {/* 3D Scene */}
         <Canvas
-          camera={{ position: [0, 2.5, 14], fov: 75 }}
+          camera={{ position: [0, 1.5, 12], fov: 75 }}
           className="w-full h-full"
           onPointerMissed={() => {
             if (showPanel) {
@@ -224,17 +255,21 @@ export default function CommandCenter() {
           </group>
 
           {/* Scroll-driven camera */}
-          <ScrollCamera scrollProgress={scrollValue} selectedCoin={selectedCoin} />
+          <ScrollCamera scrollProgress={scrollValue} selectedCoin={selectedCoin} orbitControlsRef={orbitControlsRef} />
 
           {/* Coin selection zoom camera */}
           <CoinZoomCamera selectedCoin={selectedCoin} onZoomComplete={handleZoomComplete} />
 
           <OrbitControls
+            ref={orbitControlsRef}
+            target={[0, 0, 0]}
             enableZoom={false}
             enableRotate={orbitControlsEnabled && !selectedCoin}
             enablePan={false}
             autoRotate={!selectedCoin}
             autoRotateSpeed={autoRotateSpeed}
+            minDistance={9}
+            maxDistance={15}
           />
         </Canvas>
 

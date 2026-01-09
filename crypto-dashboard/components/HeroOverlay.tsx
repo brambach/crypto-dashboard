@@ -1,15 +1,104 @@
 'use client';
 
-import { motion, MotionValue, useTransform } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, MotionValue, useTransform, useMotionValue, animate } from 'framer-motion';
 
 interface HeroOverlayProps {
   scrollProgress: MotionValue<number>;
 }
 
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+const wordVariants = {
+  hidden: {
+    opacity: 0,
+    y: 40,
+    scale: 0.95,
+    filter: 'blur(10px)',
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    filter: 'blur(0px)',
+    transition: {
+      duration: 0.8,
+      ease: [0.22, 1, 0.36, 1], // Professional easing curve
+    },
+  },
+};
+
+const subtitleVariants = {
+  hidden: {
+    opacity: 0,
+    y: 20,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      delay: 0.6,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+};
+
 export default function HeroOverlay({ scrollProgress }: HeroOverlayProps) {
-  const opacity = useTransform(scrollProgress, [0, 0.25], [1, 0]);
-  const y = useTransform(scrollProgress, [0, 0.3], [0, -60]);
-  const scrollIndicatorOpacity = useTransform(scrollProgress, [0, 0.15], [1, 0]);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Initialize motion values with explicit starting values
+  const containerOpacity = useMotionValue(1);
+  const containerY = useMotionValue(0);
+  const scrollIndicatorOpacity = useMotionValue(0); // Start hidden
+  const scrollIndicatorY = useMotionValue(-10);
+
+  useEffect(() => {
+    setIsMounted(true);
+
+    // Animate scroll indicator entrance with smooth spring after delay
+    const timer = setTimeout(() => {
+      animate(scrollIndicatorOpacity, 1, {
+        duration: 0.8,
+        ease: [0.22, 1, 0.36, 1],
+      });
+      animate(scrollIndicatorY, 0, {
+        duration: 0.8,
+        ease: [0.22, 1, 0.36, 1],
+      });
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [scrollIndicatorOpacity, scrollIndicatorY]);
+
+  // Only apply scroll transforms after mount
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const unsubscribe = scrollProgress.on('change', (latest) => {
+      // Opacity: 1 at 0%, 0 at 25%
+      const opacityValue = Math.max(0, Math.min(1, 1 - (latest / 0.25)));
+      containerOpacity.set(opacityValue);
+
+      // Y position: 0 at 0%, -60 at 30%
+      const yValue = -(latest / 0.3) * 60;
+      containerY.set(yValue);
+
+      // Scroll indicator opacity: fade out by 15% scroll
+      const indicatorOpacity = Math.max(0, Math.min(1, 1 - (latest / 0.15)));
+      scrollIndicatorOpacity.set(indicatorOpacity);
+    });
+
+    return () => unsubscribe();
+  }, [isMounted, scrollProgress, containerOpacity, containerY, scrollIndicatorOpacity]);
 
   return (
     <motion.div
@@ -17,44 +106,56 @@ export default function HeroOverlay({ scrollProgress }: HeroOverlayProps) {
       initial={{ opacity: 1, y: 0 }}
       style={{
         top: '28vh',
-        opacity,
-        y,
+        opacity: containerOpacity,
+        y: containerY,
       }}
     >
-      {/* Title - clean and confident with subtle depth */}
-      <h1 className="text-7xl md:text-8xl font-bold tracking-tight leading-none mb-6">
-        <span
+      {/* Title with staggered animations */}
+      <motion.h1
+        className="text-7xl md:text-8xl font-bold tracking-tight leading-none mb-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.span
           className="block text-white"
+          variants={wordVariants}
           style={{
             letterSpacing: '-0.02em',
-            textShadow: '0 4px 30px rgba(255,255,255,0.1), 0 0 80px rgba(255,255,255,0.05)'
+            textShadow: '0 4px 30px rgba(255,255,255,0.1), 0 0 80px rgba(255,255,255,0.05)',
           }}
         >
           CRYPTO
-        </span>
-        <span
+        </motion.span>
+        <motion.span
           className="block text-[#FFED4E]"
+          variants={wordVariants}
           style={{
             letterSpacing: '-0.02em',
-            textShadow: '0 4px 30px rgba(255,237,78,0.25), 0 0 60px rgba(255,237,78,0.15)'
+            textShadow: '0 4px 30px rgba(255,237,78,0.25), 0 0 60px rgba(255,237,78,0.15)',
           }}
         >
           COMMAND CENTER
-        </span>
-      </h1>
+        </motion.span>
+      </motion.h1>
 
-      {/* Subtitle - minimal */}
-      <p className="text-white/40 text-base font-light tracking-wide">
+      {/* Subtitle with fade in */}
+      <motion.p
+        className="text-white/40 text-base font-light tracking-wide"
+        variants={subtitleVariants}
+        initial="hidden"
+        animate="visible"
+      >
         Real-time market analytics
-      </p>
+      </motion.p>
 
-      {/* Scroll indicator - simple */}
+      {/* Scroll indicator with entrance animation */}
       <motion.div
         className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
-        initial={{ opacity: 1 }}
         style={{
           bottom: '-32vh',
           opacity: scrollIndicatorOpacity,
+          y: scrollIndicatorY,
         }}
       >
         <span className="text-white/30 text-xs tracking-widest uppercase">
