@@ -1,5 +1,6 @@
 import Groq from 'groq-sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import { CryptoData } from '@/types/crypto';
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
 
     const cryptoContext = cryptoData
       .map(
-        (crypto: any) =>
+        (crypto: CryptoData) =>
           `${crypto.name} (${crypto.symbol}): $${crypto.price.toFixed(2)} (24h change: ${crypto.change24h >= 0 ? '+' : ''}${crypto.change24h.toFixed(2)}%)`
       )
       .join('\n');
@@ -79,11 +80,13 @@ export async function POST(req: NextRequest) {
         Connection: 'keep-alive',
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in chat API:', error);
 
+    const err = error as { status?: number; message?: string };
+
     // Handle Groq API errors
-    if (error?.status === 401) {
+    if (err?.status === 401) {
       return NextResponse.json(
         {
           error: 'INVALID_API_KEY',
@@ -94,7 +97,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (error?.status === 429) {
+    if (err?.status === 429) {
       return NextResponse.json(
         {
           error: 'RATE_LIMIT',
@@ -109,7 +112,7 @@ export async function POST(req: NextRequest) {
       {
         error: 'UNKNOWN_ERROR',
         message: 'An unexpected error occurred',
-        details: error?.message || 'Unknown error',
+        details: err?.message || 'Unknown error',
       },
       { status: 500 }
     );

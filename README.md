@@ -65,7 +65,7 @@ Crypto Command Center transforms cryptocurrency tracking into a cinematic experi
 ```bash
 # Clone the repository
 git clone https://github.com/brambach/crypto-dashboard.git
-cd crypto-dashboard
+cd crypto-dashboard/crypto-dashboard
 
 # Install dependencies
 npm install
@@ -83,6 +83,8 @@ GROQ_API_KEY=your_groq_api_key_here
 ```
 
 Get a free API key at [console.groq.com/keys](https://console.groq.com/keys)
+
+**⚠️ Security Note:** Never commit `.env.local` to git. It's already in `.gitignore`, but always verify your API keys are not exposed in your repository.
 
 ### Development
 
@@ -162,6 +164,8 @@ User Click → /api/chat → Groq (Llama 3.3) → Streaming Response → AIChatP
 | Solana | SOL | Middle orbit |
 | Cardano | ADA | Fourth orbit |
 | Polkadot | DOT | Outer orbit |
+
+To add more coins, edit `/app/api/crypto/route.ts` and update orbit configuration in `CommandCenter.tsx`.
 
 ## Customization
 

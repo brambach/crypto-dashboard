@@ -31,7 +31,7 @@ const wordVariants = {
     filter: 'blur(0px)',
     transition: {
       duration: 0.8,
-      ease: [0.22, 1, 0.36, 1], // Professional easing curve
+      ease: [0.22, 1, 0.36, 1] as [number, number, number, number], // Professional easing curve
     },
   },
 };
@@ -47,7 +47,7 @@ const subtitleVariants = {
     transition: {
       duration: 0.8,
       delay: 0.6,
-      ease: [0.22, 1, 0.36, 1],
+      ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
     },
   },
 };
@@ -68,11 +68,11 @@ export default function HeroOverlay({ scrollProgress }: HeroOverlayProps) {
     const timer = setTimeout(() => {
       animate(scrollIndicatorOpacity, 1, {
         duration: 0.8,
-        ease: [0.22, 1, 0.36, 1],
+        ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
       });
       animate(scrollIndicatorY, 0, {
         duration: 0.8,
-        ease: [0.22, 1, 0.36, 1],
+        ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
       });
     }, 1000);
 

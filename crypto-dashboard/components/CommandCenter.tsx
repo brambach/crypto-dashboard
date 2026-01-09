@@ -5,6 +5,7 @@ import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
 import { CryptoData } from '@/types/crypto';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import Globe3D from './Globe3D';
 import CoinOrbit from './CoinOrbit';
 import Stars from './Stars';
@@ -17,7 +18,7 @@ import InteractionOverlay from './InteractionOverlay';
 function ScrollCamera({ scrollProgress, selectedCoin, orbitControlsRef }: {
   scrollProgress: number;
   selectedCoin: CryptoData | null;
-  orbitControlsRef: React.RefObject<any>;
+  orbitControlsRef: React.RefObject<OrbitControlsImpl | null>;
 }) {
   const { camera } = useThree();
   const targetRef = useRef({ y: 1.5, z: 12 });
@@ -134,7 +135,7 @@ export default function CommandCenter() {
   const [showPanel, setShowPanel] = useState(false);
   const [scrollValue, setScrollValue] = useState(0);
   const [hasInteracted, setHasInteracted] = useState(false); // Track if user has clicked a coin
-  const orbitControlsRef = useRef<any>(null);
+  const orbitControlsRef = useRef<OrbitControlsImpl>(null);
 
   // Scroll tracking
   const { scrollYProgress } = useScroll();
