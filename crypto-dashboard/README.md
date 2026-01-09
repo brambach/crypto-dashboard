@@ -1,80 +1,103 @@
-# Crypto Dashboard with AI Chat
+# Crypto Command Center
 
-A futuristic crypto dashboard with live price tracking and AI-powered chat analysis using Claude API.
+An immersive 3D cryptocurrency dashboard featuring a rotating Earth globe, orbiting coin indicators, and AI-powered market analysis.
+
+![Next.js](https://img.shields.io/badge/Next.js-16.1-black?style=flat-square&logo=next.js)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react)
+![Three.js](https://img.shields.io/badge/Three.js-r182-black?style=flat-square&logo=three.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?style=flat-square&logo=tailwindcss)
+
+## Overview
+
+Crypto Command Center transforms cryptocurrency tracking into a cinematic experience. A 3D Earth globe sits at the center of your screen, with real-time crypto assets orbiting around it as glowing spheres. Scroll to zoom in, click any coin to launch an AI-powered analysis panel with streaming responses.
 
 ## Features
 
-### 🚀 Split-Screen Layout
-- **Left Side**: Live crypto price cards (BTC, ETH, SOL, ADA, DOT)
-- **Right Side**: AI chat interface powered by Claude Sonnet
+### 3D Visualization
+- **Interactive Globe** - Textured Earth with wireframe overlay, slowly rotating in space
+- **Orbiting Coins** - Each cryptocurrency represented as a glowing orb with custom shader effects
+- **Dynamic Glow** - Custom GLSL shaders create pulsing glow effects that intensify on hover
+- **Ray-Traced Occlusion** - Labels automatically hide when coins pass behind the globe
+- **Starfield Background** - Procedurally generated star field with depth
 
-### 💎 Design
-- Dark sci-fi aesthetic with animated gradients
-- Glassmorphism effects on all cards
-- Glowing borders and hover animations
-- Custom scrollbar with gradient styling
-- Mobile responsive layout
+### Scroll-Driven Experience
+- **Cinematic Intro** - Hero text fades as you scroll into the experience
+- **Camera Animation** - Smooth camera movement from overview to interactive position
+- **Globe Scaling** - Globe grows as you approach for dramatic effect
+- **Progressive Disclosure** - UI elements reveal based on scroll position
 
-### 🤖 AI Chat Features
-- Real-time streaming responses with typing effect
-- Context-aware: AI has access to live crypto prices
-- Suggested questions to get started
-- "AI analyzing..." loading state with animated dots
-- Beautiful chat bubbles with timestamps
+### AI Market Analysis
+- **One-Click Analysis** - Click any coin to get instant AI insights
+- **Streaming Responses** - Real-time text streaming powered by Llama 3.3 70B via Groq
+- **Context-Aware** - AI receives live price data for accurate, current analysis
+- **Conversational** - Continue asking follow-up questions in the chat panel
 
-### 📊 Live Price Tracking
-- Auto-refresh every 10 seconds
-- 24-hour price change indicators
-- Real-time data from CoinGecko API
-- Green/red color coding for gains/losses
+### Live Market Data
+- **Real-Time Prices** - Data refreshes every 10 seconds from CoinGecko API
+- **Price Ticker** - Scrolling ticker bar shows all assets at a glance
+- **Visual Indicators** - Green/red coloring reflects 24-hour price movement
+- **Volume Tracking** - 24-hour trading volume displayed in tooltips
 
-## Setup Instructions
+## Tech Stack
 
-### 1. Install Dependencies
+| Category | Technology |
+|----------|------------|
+| Framework | Next.js 16.1 (App Router) |
+| UI Library | React 19 |
+| 3D Engine | Three.js + React Three Fiber |
+| 3D Helpers | React Three Drei |
+| Animation | Framer Motion |
+| Styling | Tailwind CSS 4 |
+| AI | Groq SDK (Llama 3.3 70B) |
+| Language | TypeScript 5 |
+| Data | CoinGecko API |
+
+## Quick Start
+
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+- Groq API key (free tier available)
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/brambach/crypto-dashboard.git
+cd crypto-dashboard
+
+# Install dependencies
 npm install
+
+# Configure environment
+cp .env.example .env.local
 ```
 
-### 2. Configure Claude API Key
+### Environment Setup
 
-Get your API key from [Anthropic Console](https://console.anthropic.com/)
-
-Edit `.env.local` and add your API key:
+Create `.env.local` with your Groq API key:
 
 ```env
-ANTHROPIC_API_KEY=your_actual_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
 ```
 
-### 3. Run Development Server
+Get a free API key at [console.groq.com/keys](https://console.groq.com/keys)
+
+### Development
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000)
 
-## How to Use
+### Production Build
 
-### Chat with the AI
-1. Ask questions about crypto markets in the chat interface
-2. Try suggested questions like:
-   - "Should I buy Bitcoin right now?"
-   - "Why is ETH down today?"
-   - "Compare SOL vs ADA"
-
-The AI has access to live price data and will provide context-aware analysis based on current market conditions.
-
-### Monitor Live Prices
-Watch the left side panel for real-time crypto prices that update every 10 seconds automatically.
-
-## Tech Stack
-
-- **Framework**: Next.js 14 (App Router)
-- **Styling**: Tailwind CSS
-- **AI**: Claude API (Sonnet 4 model)
-- **Data**: CoinGecko API
-- **Language**: TypeScript
+```bash
+npm run build
+npm start
+```
 
 ## Project Structure
 
@@ -82,40 +105,116 @@ Watch the left side panel for real-time crypto prices that update every 10 secon
 crypto-dashboard/
 ├── app/
 │   ├── api/
-│   │   ├── crypto/route.ts    # CoinGecko API integration
-│   │   └── chat/route.ts      # Claude AI streaming chat
-│   ├── globals.css            # Custom animations & themes
-│   ├── layout.tsx
-│   └── page.tsx
+│   │   ├── chat/route.ts         # AI chat endpoint (Groq/Llama)
+│   │   └── crypto/route.ts       # Price data endpoint (CoinGecko)
+│   ├── globals.css               # Global styles & animations
+│   ├── layout.tsx                # Root layout
+│   └── page.tsx                  # Entry point
 ├── components/
-│   ├── CryptoCard.tsx         # Glassmorphism price card
-│   ├── CryptoDashboard.tsx    # Main split-screen layout
-│   └── ChatInterface.tsx      # AI chat UI with streaming
-└── types/
-    ├── crypto.ts
-    └── chat.ts
+│   ├── CommandCenter.tsx         # Main orchestrator component
+│   ├── Globe3D.tsx               # Earth globe with texture
+│   ├── CoinOrbit.tsx             # Orbiting coin with glow shader
+│   ├── Stars.tsx                 # Starfield background
+│   ├── HeroOverlay.tsx           # Intro text overlay
+│   ├── InteractionOverlay.tsx    # Scroll prompt UI
+│   ├── AIChatPanel.tsx           # Slide-out AI chat panel
+│   ├── PriceCards.tsx            # Floating price ticker
+│   └── ...
+├── types/
+│   ├── crypto.ts                 # Crypto data types
+│   └── chat.ts                   # Chat message types
+└── public/
+    └── ...
 ```
 
-## Features in Detail
+## Architecture
 
-### Glassmorphism Design
-- Backdrop blur effects
-- Semi-transparent backgrounds
-- Layered depth with shadows
-- Border gradients on hover
+### Rendering Pipeline
 
-### Animated Gradients
-- Background gradient animation
-- Gradient text for headings
-- Animated borders on cards
-- Pulsing accent dots
+```
+CommandCenter
+├── Canvas (React Three Fiber)
+│   ├── Stars (background)
+│   ├── Globe3D (Earth mesh + wireframe)
+│   ├── CoinOrbit[] (per-coin with shader)
+│   ├── ScrollCamera (scroll-driven)
+│   └── CoinZoomCamera (selection zoom)
+├── HeroOverlay (Framer Motion)
+├── InteractionOverlay (Framer Motion)
+├── PriceCards (React)
+└── AIChatPanel (React + streaming)
+```
 
-### AI Chat Streaming
-- Real-time response streaming
-- Character-by-character typing effect
-- Abort controller for canceling requests
-- Auto-scroll to latest message
+### Data Flow
+
+```
+CoinGecko API → /api/crypto → CommandCenter → CoinOrbit components
+                                    ↓
+User Click → /api/chat → Groq (Llama 3.3) → Streaming Response → AIChatPanel
+```
+
+## Supported Cryptocurrencies
+
+| Coin | Symbol | Orbit Position |
+|------|--------|----------------|
+| Bitcoin | BTC | Inner orbit |
+| Ethereum | ETH | Second orbit |
+| Solana | SOL | Middle orbit |
+| Cardano | ADA | Fourth orbit |
+| Polkadot | DOT | Outer orbit |
+
+## Customization
+
+### Adding New Coins
+
+1. Update coin list in `/api/crypto/route.ts`
+2. Adjust orbit configuration in `CommandCenter.tsx`:
+
+```typescript
+const orbitRadii = [4.2, 4.8, 5.4, 6.0, 6.6, /* new radius */];
+const orbitSpeeds = [0.003, 0.0045, 0.004, 0.005, 0.0035, /* new speed */];
+```
+
+### Modifying Globe Appearance
+
+Edit `Globe3D.tsx` to change:
+- Globe texture URL
+- Wireframe density and opacity
+- Rotation speed
+
+### Adjusting Glow Effects
+
+The glow shader in `CoinOrbit.tsx` accepts uniforms:
+- `glowColor` - Base glow color
+- `intensity` - Glow strength (animated on hover)
+- `falloff` - Edge softness
+
+## Performance
+
+- **GPU-Accelerated** - All 3D rendering on GPU via WebGL
+- **Optimized Shaders** - Custom GLSL for efficient glow effects
+- **Lazy Loading** - Earth texture loaded asynchronously
+- **Streaming AI** - Responses stream in real-time, no waiting
+
+## Browser Support
+
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+Requires WebGL 2.0 support.
+
+## License
+
+MIT
+
+## Acknowledgments
+
+- Earth texture from [Three.js examples](https://github.com/mrdoob/three.js)
+- Price data from [CoinGecko API](https://www.coingecko.com/en/api)
+- AI powered by [Groq](https://groq.com/) running Llama 3.3
 
 ---
 
-Built with Next.js 14 and Claude AI
+Built with Next.js, Three.js, and Groq AI
