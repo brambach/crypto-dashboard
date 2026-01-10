@@ -75,11 +75,6 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
 
   useFrame(({ camera, clock }) => {
     if (coinRef.current) {
-      angleRef.current += orbitSpeed;
-      coinRef.current.position.x = Math.cos(angleRef.current) * orbitRadius;
-      coinRef.current.position.z = Math.sin(angleRef.current) * orbitRadius;
-      coinRef.current.position.y = Math.sin(angleRef.current * 2) * 0.5;
-
       // Check if coin is occluded by the globe using ray-sphere intersection
       const coinWorldPos = new THREE.Vector3();
       coinRef.current.getWorldPosition(coinWorldPos);
@@ -100,17 +95,28 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
       // Distance from camera to coin
       const distToCoin = coinWorldPos.distanceTo(rayOrigin);
 
+      let isOccluded = false;
       if (discriminant > 0) {
         // Ray intersects sphere - check if intersection is between camera and coin
         const t1 = (-b - Math.sqrt(discriminant)) / (2 * a);
         const t2 = (-b + Math.sqrt(discriminant)) / (2 * a);
 
         // If the near intersection point is between camera and coin, globe occludes
-        const isOccluded = t1 > 0 && t1 < distToCoin;
-        setIsBehindGlobe(isOccluded);
-      } else {
-        setIsBehindGlobe(false);
+        isOccluded = t1 > 0 && t1 < distToCoin;
       }
+      setIsBehindGlobe(isOccluded);
+
+      // Reset hover state if coin goes behind globe or labels are hidden (prevents stuck slow speed)
+      if ((isOccluded || hideLabels) && hovered) {
+        setHovered(false);
+      }
+
+      // Slow down orbit speed significantly when hovered (10% speed)
+      const currentSpeed = hovered ? orbitSpeed * 0.1 : orbitSpeed;
+      angleRef.current += currentSpeed;
+      coinRef.current.position.x = Math.cos(angleRef.current) * orbitRadius;
+      coinRef.current.position.z = Math.sin(angleRef.current) * orbitRadius;
+      coinRef.current.position.y = Math.sin(angleRef.current * 2) * 0.5;
     }
 
     // Animate glow intensity

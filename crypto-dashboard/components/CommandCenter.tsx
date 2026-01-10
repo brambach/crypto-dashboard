@@ -34,7 +34,7 @@ function ScrollCamera({ scrollProgress, selectedCoin, orbitControlsRef, isMobile
     if (!selectedCoin) {
       // Desktop: Calculate base position from scroll
       const baseY = 1.5 - (scrollProgress * 0.7);  // 1.5 → 0.8
-      const baseZ = isMobile ? 14 : (12 - (scrollProgress * 2));      // Mobile: 14, Desktop: 12 → 10
+      const baseZ = isMobile ? 14 : (12 - (scrollProgress * 5));      // Mobile: 14, Desktop: 12 → 7 (5 units zoom)
 
       // Calculate current distance from origin
       const currentDistance = Math.sqrt(
@@ -152,11 +152,10 @@ export default function CommandCenter() {
     setScrollValue(latest);
   });
 
-  // Fixed globe scale - no zoom animation on desktop, animated on mobile
-  const currentGlobeScale = 1.0;
-
-  // Use animated scale on mobile, fixed scale on desktop
-  const activeScale = isMobile ? currentScale : currentGlobeScale;
+  // Desktop: scale globe slightly during scroll for enhanced zoom effect
+  // Mobile: use animated scale on tap
+  const desktopScale = 1.0 + (scrollValue * 0.15); // 1.0 → 1.15 (15% increase)
+  const activeScale = isMobile ? currentScale : desktopScale;
 
   const fetchCryptoData = async () => {
     try {
