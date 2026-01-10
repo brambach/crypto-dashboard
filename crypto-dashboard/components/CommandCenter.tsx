@@ -15,10 +15,12 @@ import HeroOverlay from './HeroOverlay';
 import InteractionOverlay from './InteractionOverlay';
 
 // Scroll-driven camera that responds to page scroll
-function ScrollCamera({ scrollProgress, selectedCoin, orbitControlsRef }: {
+function ScrollCamera({ scrollProgress, selectedCoin, orbitControlsRef, isMobile, heroVisible }: {
   scrollProgress: number;
   selectedCoin: CryptoData | null;
   orbitControlsRef: React.RefObject<OrbitControlsImpl | null>;
+  isMobile: boolean;
+  heroVisible: boolean;
 }) {
   const { camera } = useThree();
   const targetRef = useRef({ y: 1.5, z: 12 });
@@ -26,12 +28,13 @@ function ScrollCamera({ scrollProgress, selectedCoin, orbitControlsRef }: {
   // Start at Math.PI/2 so breathing starts at maximum zoom (sin(π/2) = 1)
   const timeRef = useRef(Math.PI / 2);
   const lastDistanceRef = useRef(12);
+  const mobileEnteredRef = useRef(false);
 
   useFrame((state, delta) => {
     if (!selectedCoin) {
-      // Calculate base position from scroll
+      // Desktop: Calculate base position from scroll
       const baseY = 1.5 - (scrollProgress * 0.7);  // 1.5 → 0.8
-      const baseZ = 12 - (scrollProgress * 2);      // 12 → 10
+      const baseZ = isMobile ? 14 : (12 - (scrollProgress * 2));      // Mobile: 14, Desktop: 12 → 10
 
       // Calculate current distance from origin
       const currentDistance = Math.sqrt(
@@ -138,6 +141,7 @@ export default function CommandCenter() {
   const [isMobile, setIsMobile] = useState(false);
   const [mobileScale, setMobileScale] = useState(1);
   const [heroVisible, setHeroVisible] = useState(true); // Track hero visibility
+  const [currentScale, setCurrentScale] = useState(1); // Current scale for zoom animation
   const orbitControlsRef = useRef<OrbitControlsImpl>(null);
 
   // Scroll tracking
@@ -148,8 +152,11 @@ export default function CommandCenter() {
     setScrollValue(latest);
   });
 
-  // Fixed globe scale - no zoom animation
+  // Fixed globe scale - no zoom animation on desktop, animated on mobile
   const currentGlobeScale = 1.0;
+
+  // Use animated scale on mobile, fixed scale on desktop
+  const activeScale = isMobile ? currentScale : currentGlobeScale;
 
   const fetchCryptoData = async () => {
     try {
@@ -180,9 +187,12 @@ export default function CommandCenter() {
         // Also consider height for very tall/short screens
         const heightScale = Math.min(1, height / 800);
         // Use the smaller of the two to ensure it fits
-        setMobileScale(Math.min(widthScale, heightScale) * 0.85);
+        const baseScale = Math.min(widthScale, heightScale) * 0.85;
+        setMobileScale(baseScale);
+        setCurrentScale(baseScale); // Initialize current scale
       } else {
         setMobileScale(1);
+        setCurrentScale(1);
       }
     };
 
@@ -214,6 +224,27 @@ export default function CommandCenter() {
   const handleDismissHero = () => {
     if (isMobile && heroVisible) {
       setHeroVisible(false);
+      // Animate scale increase on mobile for "entering" effect
+      const startScale = mobileScale;
+      const targetScale = mobileScale * 1.4; // Increase scale by 40%
+      const duration = 800; // 800ms animation
+      const startTime = Date.now();
+
+      const animateScale = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Ease out cubic for smooth deceleration
+        const eased = 1 - Math.pow(1 - progress, 3);
+
+        setCurrentScale(startScale + (targetScale - startScale) * eased);
+
+        if (progress < 1) {
+          requestAnimationFrame(animateScale);
+        }
+      };
+
+      animateScale();
     }
   };
 
@@ -280,7 +311,7 @@ export default function CommandCenter() {
           <Stars />
 
           {/* Globe and coins together - scale as one unit */}
-          <group scale={isMobile ? mobileScale : currentGlobeScale}>
+          <group scale={activeScale}>
             <Globe3D isMobile={isMobile} />
             {cryptoData.map((coin, index) => (
               <CoinOrbit
@@ -290,7 +321,7 @@ export default function CommandCenter() {
                 orbitSpeed={orbitSpeeds[index]}
                 onClick={() => handleCoinClick(coin)}
                 index={index}
-                globeScale={isMobile ? mobileScale : currentGlobeScale}
+                globeScale={activeScale}
                 hideLabels={showPanel}
                 isMobile={isMobile}
               />
@@ -298,7 +329,13 @@ export default function CommandCenter() {
           </group>
 
           {/* Scroll-driven camera */}
-          <ScrollCamera scrollProgress={scrollValue} selectedCoin={selectedCoin} orbitControlsRef={orbitControlsRef} />
+          <ScrollCamera
+            scrollProgress={scrollValue}
+            selectedCoin={selectedCoin}
+            orbitControlsRef={orbitControlsRef}
+            isMobile={isMobile}
+            heroVisible={heroVisible}
+          />
 
           {/* Coin selection zoom camera */}
           <CoinZoomCamera selectedCoin={selectedCoin} onZoomComplete={handleZoomComplete} />
