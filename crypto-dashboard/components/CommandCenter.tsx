@@ -137,6 +137,7 @@ export default function CommandCenter() {
   const [hasInteracted, setHasInteracted] = useState(false); // Track if user has clicked a coin
   const [isMobile, setIsMobile] = useState(false);
   const [mobileScale, setMobileScale] = useState(1);
+  const [heroVisible, setHeroVisible] = useState(true); // Track hero visibility
   const orbitControlsRef = useRef<OrbitControlsImpl>(null);
 
   // Scroll tracking
@@ -207,6 +208,13 @@ export default function CommandCenter() {
   const handleCoinClick = (coin: CryptoData) => {
     setSelectedCoin(coin);
     setHasInteracted(true); // Mark that user has interacted - hides hero permanently
+    setHeroVisible(false);
+  };
+
+  const handleDismissHero = () => {
+    if (isMobile && heroVisible) {
+      setHeroVisible(false);
+    }
   };
 
   const handleZoomComplete = () => {
@@ -244,11 +252,11 @@ export default function CommandCenter() {
 
   return (
     <div className="relative bg-[#0a0a0a]">
-      {/* Scrollable height trigger - creates the scroll distance */}
-      <div className="h-[250vh]" />
+      {/* Scrollable height trigger - creates the scroll distance (desktop only) */}
+      {!isMobile && <div className="h-[250vh]" />}
 
       {/* Fixed viewport container */}
-      <div className="fixed inset-0 overflow-hidden">
+      <div className="fixed inset-0 overflow-hidden" onClick={handleDismissHero}>
         {/* Price Cards - stays at top */}
         <PriceCards cryptoData={cryptoData} />
 
@@ -313,11 +321,13 @@ export default function CommandCenter() {
           />
         </Canvas>
 
-        {/* Hero Overlay - fades out on scroll, hidden permanently after interacting with coin */}
-        {!selectedCoin && !hasInteracted && <HeroOverlay scrollProgress={scrollYProgress} />}
+        {/* Hero Overlay - fades out on scroll (desktop) or tap (mobile) */}
+        {!selectedCoin && !hasInteracted && heroVisible && (
+          <HeroOverlay scrollProgress={scrollYProgress} isMobile={isMobile} />
+        )}
 
-        {/* Interaction Overlay - fades in on scroll */}
-        {!selectedCoin && <InteractionOverlay scrollProgress={scrollYProgress} />}
+        {/* Interaction Overlay - fades in on scroll (desktop only) */}
+        {!selectedCoin && !isMobile && <InteractionOverlay scrollProgress={scrollYProgress} />}
 
         {/* AI Chat Panel */}
         <AIChatPanel

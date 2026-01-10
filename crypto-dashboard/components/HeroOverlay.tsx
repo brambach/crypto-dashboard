@@ -5,6 +5,7 @@ import { motion, MotionValue, useTransform, useMotionValue, animate } from 'fram
 
 interface HeroOverlayProps {
   scrollProgress: MotionValue<number>;
+  isMobile?: boolean;
 }
 
 const containerVariants = {
@@ -52,7 +53,7 @@ const subtitleVariants = {
   },
 };
 
-export default function HeroOverlay({ scrollProgress }: HeroOverlayProps) {
+export default function HeroOverlay({ scrollProgress, isMobile = false }: HeroOverlayProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   // Initialize motion values with explicit starting values
@@ -79,9 +80,9 @@ export default function HeroOverlay({ scrollProgress }: HeroOverlayProps) {
     return () => clearTimeout(timer);
   }, [scrollIndicatorOpacity, scrollIndicatorY]);
 
-  // Only apply scroll transforms after mount
+  // Only apply scroll transforms after mount (desktop only)
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || isMobile) return;
 
     const unsubscribe = scrollProgress.on('change', (latest) => {
       // Opacity: 1 at 0%, 0 at 25%
@@ -98,7 +99,7 @@ export default function HeroOverlay({ scrollProgress }: HeroOverlayProps) {
     });
 
     return () => unsubscribe();
-  }, [isMounted, scrollProgress, containerOpacity, containerY, scrollIndicatorOpacity]);
+  }, [isMounted, scrollProgress, containerOpacity, containerY, scrollIndicatorOpacity, isMobile]);
 
   return (
     <motion.div
@@ -149,9 +150,9 @@ export default function HeroOverlay({ scrollProgress }: HeroOverlayProps) {
         Real-time market analytics
       </motion.p>
 
-      {/* Scroll indicator with entrance animation */}
+      {/* Scroll/Tap indicator with entrance animation */}
       <motion.div
-        className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 sm:gap-3"
+        className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 sm:gap-3 cursor-pointer"
         style={{
           bottom: '-25vh',
           opacity: scrollIndicatorOpacity,
@@ -159,25 +160,27 @@ export default function HeroOverlay({ scrollProgress }: HeroOverlayProps) {
         }}
       >
         <span className="text-white/30 text-[10px] sm:text-xs tracking-widest uppercase">
-          Scroll
+          {isMobile ? 'Tap to explore' : 'Scroll'}
         </span>
-        <motion.svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          className="text-white/30"
-          animate={{ y: [0, 4, 0] }}
-          transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-        >
-          <path
-            d="M19 14l-7 7-7-7"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </motion.svg>
+        {!isMobile && (
+          <motion.svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            className="text-white/30"
+            animate={{ y: [0, 4, 0] }}
+            transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+          >
+            <path
+              d="M19 14l-7 7-7-7"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </motion.svg>
+        )}
       </motion.div>
     </motion.div>
   );
