@@ -1,13 +1,25 @@
 'use client';
 
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-const STAR_COUNT = 15000;
-
 export default function Stars() {
   const pointsRef = useRef<THREE.Points>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile for performance optimization
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Reduce star count on mobile for better performance
+  const STAR_COUNT = isMobile ? 5000 : 15000;
 
   const { positions, sizes, twinkleOffsets } = useMemo(() => {
     const positions = new Float32Array(STAR_COUNT * 3);
@@ -36,7 +48,7 @@ export default function Stars() {
     }
 
     return { positions, sizes, twinkleOffsets };
-  }, []);
+  }, [STAR_COUNT]);
 
   useFrame(({ clock }) => {
     if (pointsRef.current) {

@@ -12,15 +12,16 @@ export default function InteractionOverlay({ scrollProgress }: InteractionOverla
 
   return (
     <motion.div
-      className="fixed left-0 right-0 text-center pointer-events-none z-40"
+      className="fixed left-0 right-0 text-center pointer-events-none z-40 px-4"
       style={{
         bottom: '10vh',
         opacity,
         y,
       }}
     >
-      <p className="text-white/40 text-sm tracking-wide">
-        Select a coin for analysis
+      <p className="text-white/40 text-xs sm:text-sm tracking-wide">
+        <span className="hidden sm:inline">Select a coin for analysis</span>
+        <span className="sm:hidden">Tap a coin</span>
       </p>
     </motion.div>
   );

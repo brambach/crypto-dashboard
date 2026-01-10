@@ -5,7 +5,11 @@ import { useFrame, useLoader } from '@react-three/fiber';
 import { Sphere } from '@react-three/drei';
 import * as THREE from 'three';
 
-export default function Globe3D() {
+interface Globe3DProps {
+  isMobile?: boolean;
+}
+
+export default function Globe3D({ isMobile = false }: Globe3DProps) {
   const globeRef = useRef<THREE.Group>(null);
 
   // Load Earth texture from a public CDN
@@ -20,10 +24,15 @@ export default function Globe3D() {
     }
   });
 
+  // Reduce sphere size and polygon count on mobile for better performance
+  const sphereSize = isMobile ? 3.0 : 3.5;
+  const sphereDetail = isMobile ? 48 : 64;
+  const wireframeDetail = isMobile ? 24 : 32;
+
   return (
     <group ref={globeRef}>
-      {/* Main Earth sphere with texture - 40% larger */}
-      <Sphere args={[3.5, 64, 64]}>
+      {/* Main Earth sphere with texture - reduced size on mobile */}
+      <Sphere args={[sphereSize, sphereDetail, sphereDetail]}>
         <meshStandardMaterial
           map={earthTexture}
           metalness={0.1}
@@ -32,7 +41,7 @@ export default function Globe3D() {
       </Sphere>
 
       {/* Wireframe grid overlay - subtle white */}
-      <Sphere args={[3.53, 32, 32]}>
+      <Sphere args={[sphereSize + 0.03, wireframeDetail, wireframeDetail]}>
         <meshBasicMaterial
           color="#ffffff"
           wireframe

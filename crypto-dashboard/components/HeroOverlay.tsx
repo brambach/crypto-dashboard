@@ -102,17 +102,17 @@ export default function HeroOverlay({ scrollProgress }: HeroOverlayProps) {
 
   return (
     <motion.div
-      className="fixed left-0 right-0 text-center pointer-events-none z-40 px-6"
+      className="fixed left-0 right-0 text-center pointer-events-none z-40 px-4 sm:px-6"
       initial={{ opacity: 1, y: 0 }}
       style={{
-        top: '28vh',
+        top: '20vh',
         opacity: containerOpacity,
         y: containerY,
       }}
     >
       {/* Title with staggered animations */}
       <motion.h1
-        className="text-7xl md:text-8xl font-bold tracking-tight leading-none mb-6"
+        className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-none mb-4 sm:mb-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -141,7 +141,7 @@ export default function HeroOverlay({ scrollProgress }: HeroOverlayProps) {
 
       {/* Subtitle with fade in */}
       <motion.p
-        className="text-white/40 text-base font-light tracking-wide"
+        className="text-white/40 text-sm sm:text-base font-light tracking-wide"
         variants={subtitleVariants}
         initial="hidden"
         animate="visible"
@@ -151,14 +151,14 @@ export default function HeroOverlay({ scrollProgress }: HeroOverlayProps) {
 
       {/* Scroll indicator with entrance animation */}
       <motion.div
-        className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
+        className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 sm:gap-3"
         style={{
-          bottom: '-32vh',
+          bottom: '-25vh',
           opacity: scrollIndicatorOpacity,
           y: scrollIndicatorY,
         }}
       >
-        <span className="text-white/30 text-xs tracking-widest uppercase">
+        <span className="text-white/30 text-[10px] sm:text-xs tracking-widest uppercase">
           Scroll
         </span>
         <motion.svg

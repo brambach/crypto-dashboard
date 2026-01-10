@@ -19,9 +19,10 @@ interface CoinOrbitProps {
   index?: number;
   globeScale?: number;
   hideLabels?: boolean;
+  isMobile?: boolean;
 }
 
-export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, index = 0, globeScale = 1, hideLabels = false }: CoinOrbitProps) {
+export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, index = 0, globeScale = 1, hideLabels = false, isMobile = false }: CoinOrbitProps) {
   const coinRef = useRef<THREE.Group>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
@@ -65,7 +66,12 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
   }, []);
 
   const [isBehindGlobe, setIsBehindGlobe] = useState(false);
-  const GLOBE_BASE_RADIUS = 3.5; // Match the globe radius from Globe3D
+  const GLOBE_BASE_RADIUS = isMobile ? 3.0 : 3.5; // Match the globe radius from Globe3D
+
+  // Reduce polygon count on mobile for better performance
+  const sphereDetail = isMobile ? 24 : 32;
+  const glowSphereDetail = isMobile ? 20 : 32;
+  const coreSphereDetail = isMobile ? 12 : 16;
 
   useFrame(({ camera, clock }) => {
     if (coinRef.current) {
@@ -126,19 +132,19 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
   return (
     <group ref={coinRef}>
       {/* Outer glow sphere */}
-      <Sphere args={[0.38, 32, 32]} ref={glowRef}>
+      <Sphere args={[0.38, glowSphereDetail, glowSphereDetail]} ref={glowRef}>
         <primitive object={glowMaterial} attach="material" />
       </Sphere>
 
       {/* Main coin sphere with enhanced material */}
       <Sphere
-        args={[0.25, 32, 32]}
+        args={[isMobile ? 0.3 : 0.25, sphereDetail, sphereDetail]}
         onClick={(e) => {
           e.stopPropagation();
           onClick();
         }}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
+        onPointerOver={() => !isMobile && setHovered(true)}
+        onPointerOut={() => !isMobile && setHovered(false)}
         scale={hovered ? 1.15 : 1}
       >
         <meshStandardMaterial
@@ -152,7 +158,7 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
       </Sphere>
 
       {/* Inner bright core for extra shine */}
-      <Sphere args={[0.15, 16, 16]}>
+      <Sphere args={[0.15, coreSphereDetail, coreSphereDetail]}>
         <meshBasicMaterial
           color={coinColor}
           transparent
@@ -165,7 +171,7 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
         <Html
           position={[0, 0.55, 0]}
           center
-          distanceFactor={8}
+          distanceFactor={isMobile ? 10 : 8}
           style={{
             transition: 'all 0.3s ease',
             transform: hovered ? 'scale(1.1)' : 'scale(1)',
@@ -175,7 +181,7 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
             className="select-none pointer-events-none"
             style={{
               fontFamily: 'system-ui, -apple-system, sans-serif',
-              fontSize: '14px',
+              fontSize: isMobile ? '12px' : '14px',
               fontWeight: 700,
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
@@ -191,8 +197,8 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
         </Html>
       )}
 
-      {/* Tooltip on hover - enhanced design (only when visible and panel not open) */}
-      {hovered && !isBehindGlobe && !hideLabels && (
+      {/* Tooltip on hover - enhanced design (only when visible and panel not open, disabled on mobile) */}
+      {hovered && !isBehindGlobe && !hideLabels && !isMobile && (
         <Html distanceFactor={10} position={[0, -0.6, 0]} center>
           <div
             className="rounded-xl px-5 py-4 pointer-events-none backdrop-blur-md"

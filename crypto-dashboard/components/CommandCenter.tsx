@@ -135,6 +135,8 @@ export default function CommandCenter() {
   const [showPanel, setShowPanel] = useState(false);
   const [scrollValue, setScrollValue] = useState(0);
   const [hasInteracted, setHasInteracted] = useState(false); // Track if user has clicked a coin
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileScale, setMobileScale] = useState(1);
   const orbitControlsRef = useRef<OrbitControlsImpl>(null);
 
   // Scroll tracking
@@ -161,6 +163,33 @@ export default function CommandCenter() {
       setLoading(false);
     }
   };
+
+  // Detect mobile on mount and window resize
+  useEffect(() => {
+    const checkMobile = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      setIsMobile(width < 768);
+
+      // Calculate mobile scale based on screen size
+      if (width < 768) {
+        // Scale factor based on screen width
+        // 320px (iPhone SE) = 0.5, 375px = 0.6, 414px = 0.7, etc.
+        const widthScale = Math.min(1, width / 600);
+        // Also consider height for very tall/short screens
+        const heightScale = Math.min(1, height / 800);
+        // Use the smaller of the two to ensure it fits
+        setMobileScale(Math.min(widthScale, heightScale) * 0.85);
+      } else {
+        setMobileScale(1);
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Reset scroll to top on mount and initialize scroll value
   useEffect(() => {
@@ -201,8 +230,8 @@ export default function CommandCenter() {
     );
   }
 
-  // Orbit configuration
-  const orbitRadii = [4.2, 4.8, 5.4, 6.0, 6.6];
+  // Orbit configuration - adjusted for mobile
+  const orbitRadii = isMobile ? [3.5, 4.0, 4.5, 5.0, 5.5] : [4.2, 4.8, 5.4, 6.0, 6.6];
   const orbitSpeeds = [0.003, 0.0045, 0.004, 0.005, 0.0035];
 
   // Slow down auto-rotation as user scrolls (easier to click coins)
@@ -210,7 +239,8 @@ export default function CommandCenter() {
 
   // Disable OrbitControls during hero phase (let page scroll work)
   // Enable after scrolling past ~30% (when title has faded)
-  const orbitControlsEnabled = scrollValue > 0.3;
+  // On mobile, enable immediately for touch controls
+  const orbitControlsEnabled = isMobile ? true : scrollValue > 0.3;
 
   return (
     <div className="relative bg-[#0a0a0a]">
@@ -224,7 +254,10 @@ export default function CommandCenter() {
 
         {/* 3D Scene */}
         <Canvas
-          camera={{ position: [0, 1.5, 12], fov: 75 }}
+          camera={{
+            position: isMobile ? [0, 1.5, 14] : [0, 1.5, 12],
+            fov: isMobile ? 60 : 75
+          }}
           className="w-full h-full"
           onPointerMissed={() => {
             if (showPanel) {
@@ -239,8 +272,8 @@ export default function CommandCenter() {
           <Stars />
 
           {/* Globe and coins together - scale as one unit */}
-          <group scale={currentGlobeScale}>
-            <Globe3D />
+          <group scale={isMobile ? mobileScale : currentGlobeScale}>
+            <Globe3D isMobile={isMobile} />
             {cryptoData.map((coin, index) => (
               <CoinOrbit
                 key={coin.id}
@@ -249,8 +282,9 @@ export default function CommandCenter() {
                 orbitSpeed={orbitSpeeds[index]}
                 onClick={() => handleCoinClick(coin)}
                 index={index}
-                globeScale={currentGlobeScale}
+                globeScale={isMobile ? mobileScale : currentGlobeScale}
                 hideLabels={showPanel}
+                isMobile={isMobile}
               />
             ))}
           </group>
@@ -269,8 +303,13 @@ export default function CommandCenter() {
             enablePan={false}
             autoRotate={!selectedCoin}
             autoRotateSpeed={autoRotateSpeed}
-            minDistance={9}
-            maxDistance={15}
+            minDistance={isMobile ? 10 : 9}
+            maxDistance={isMobile ? 18 : 15}
+            rotateSpeed={isMobile ? 0.5 : 1}
+            touches={{
+              ONE: 0,  // 0 = ROTATE (one finger rotates the globe)
+              TWO: 0   // 0 = ROTATE (two fingers also rotate)
+            }}
           />
         </Canvas>
 

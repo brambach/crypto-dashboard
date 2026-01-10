@@ -153,33 +153,33 @@ export default function AIChatPanel({ isOpen, selectedCoin, onClose, cryptoData 
             className="fixed right-0 top-0 h-screen w-full md:w-[420px] z-50 flex flex-col bg-[#0a0a0a] border-l border-white/5"
           >
             {/* Header */}
-            <div className="px-6 py-5 border-b border-white/5">
+            <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-white/5">
               {/* Close button */}
               <button
                 onClick={onClose}
-                className="mb-4 text-white/40 hover:text-white transition-colors text-sm flex items-center gap-2"
+                className="mb-3 sm:mb-4 text-white/40 hover:text-white transition-colors text-sm flex items-center gap-2 min-h-[44px] -ml-2 pl-2 pr-3 -mt-2"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                <span className="text-xs">Close</span>
+                <span className="text-xs sm:text-xs">Close</span>
               </button>
 
               {/* Coin info */}
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-2xl font-semibold text-white">
+                  <h2 className="text-xl sm:text-2xl font-semibold text-white">
                     {selectedCoin?.name}
                   </h2>
-                  <p className="text-sm text-white/40 mt-0.5">
+                  <p className="text-xs sm:text-sm text-white/40 mt-0.5">
                     {selectedCoin?.symbol}
                   </p>
                 </div>
                 <div className="text-right">
-                  <div className="text-xl font-semibold text-white">
+                  <div className="text-lg sm:text-xl font-semibold text-white">
                     ${selectedCoin?.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
-                  <div className={`text-sm ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                  <div className={`text-xs sm:text-sm ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
                     {isPositive ? '+' : ''}{selectedCoin?.change24h.toFixed(2)}%
                   </div>
                 </div>
@@ -187,7 +187,7 @@ export default function AIChatPanel({ isOpen, selectedCoin, onClose, cryptoData 
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 space-y-3 sm:space-y-4">
               {messages.length === 0 && isLoading && (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
@@ -241,25 +241,25 @@ export default function AIChatPanel({ isOpen, selectedCoin, onClose, cryptoData 
             </div>
 
             {/* Input */}
-            <div className="p-6 border-t border-white/5">
-              <form onSubmit={handleSubmit} className="flex gap-3">
+            <div className="p-4 sm:p-6 border-t border-white/5 safe-area-bottom">
+              <form onSubmit={handleSubmit} className="flex gap-2 sm:gap-3">
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask a question..."
                   disabled={isLoading}
-                  className="flex-1 px-4 py-3 rounded-lg bg-white/[0.03] border border-white/5 text-white text-sm placeholder:text-white/20 disabled:opacity-50 focus:outline-none focus:border-white/10 transition-colors"
+                  className="flex-1 px-3 sm:px-4 py-3 rounded-lg bg-white/[0.03] border border-white/5 text-white text-sm placeholder:text-white/20 disabled:opacity-50 focus:outline-none focus:border-white/10 transition-colors min-h-[44px]"
                 />
                 <button
                   type="submit"
                   disabled={isLoading || !input.trim()}
-                  className="px-5 py-3 rounded-lg bg-[#FFED4E] text-black font-medium text-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#ffe033] transition-colors"
+                  className="px-4 sm:px-5 py-3 rounded-lg bg-[#FFED4E] text-black font-medium text-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#ffe033] transition-colors min-h-[44px] min-w-[60px] sm:min-w-[70px]"
                 >
                   Send
                 </button>
               </form>
-              <p className="mt-3 text-[10px] text-white/20 text-center">
+              <p className="mt-2 sm:mt-3 text-[9px] sm:text-[10px] text-white/20 text-center">
                 Not financial advice
               </p>
             </div>

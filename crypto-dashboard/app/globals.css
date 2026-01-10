@@ -101,3 +101,52 @@ body {
   background-color: rgba(255, 237, 78, 0.2);
   color: var(--accent);
 }
+
+/* Hide scrollbar for horizontal scroll on mobile */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe area support for notched devices (iPhone X, etc.) */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Prevent text size adjustment on mobile */
+body {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Improve touch interactions */
+@media (hover: none) and (pointer: coarse) {
+  /* Mobile touch optimization */
+  button, a, [role="button"] {
+    cursor: pointer;
+    -webkit-tap-highlight-color: rgba(255, 237, 78, 0.1);
+  }
+}
+
+/* Prevent horizontal scroll */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Mobile-specific performance optimizations */
+@media (max-width: 767px) {
+  * {
+    /* Reduce animation complexity on mobile */
+    will-change: auto !important;
+  }
+
+  /* Disable hover effects on mobile */
+  *:hover {
+    transition-duration: 0s !important;
+  }
+}
