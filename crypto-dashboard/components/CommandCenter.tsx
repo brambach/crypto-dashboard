@@ -143,6 +143,7 @@ export default function CommandCenter() {
   const [heroVisible, setHeroVisible] = useState(true); // Track hero visibility
   const [currentScale, setCurrentScale] = useState(1); // Current scale for zoom animation
   const orbitControlsRef = useRef<OrbitControlsImpl>(null);
+  const mountedRef = useRef(false);
 
   // Scroll tracking
   const { scrollYProgress } = useScroll();
@@ -150,6 +151,12 @@ export default function CommandCenter() {
   // Update scroll value for Three.js components
   useMotionValueEvent(scrollYProgress, 'change', (latest) => {
     setScrollValue(latest);
+
+    // Hide hero when scrolled past 30% on desktop (hero fades out by 25%)
+    // Only after component is fully mounted to prevent hiding on initial render
+    if (mountedRef.current && !isMobile && latest > 0.3 && heroVisible) {
+      setHeroVisible(false);
+    }
   });
 
   // Desktop: scale globe slightly during scroll for enhanced zoom effect
@@ -206,6 +213,10 @@ export default function CommandCenter() {
     window.scrollTo(0, 0);
     // Ensure scroll value is initialized to 0 on mount
     setScrollValue(0);
+    // Mark component as mounted after a brief delay to ensure everything is ready
+    setTimeout(() => {
+      mountedRef.current = true;
+    }, 100);
   }, []);
 
   useEffect(() => {
@@ -323,6 +334,7 @@ export default function CommandCenter() {
                 globeScale={activeScale}
                 hideLabels={showPanel}
                 isMobile={isMobile}
+                heroVisible={heroVisible}
               />
             ))}
           </group>

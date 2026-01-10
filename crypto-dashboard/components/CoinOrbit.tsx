@@ -1,8 +1,9 @@
 'use client';
 
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Sphere, Html } from '@react-three/drei';
+import { motion, AnimatePresence } from 'framer-motion';
 import * as THREE from 'three';
 
 interface CoinOrbitProps {
@@ -20,12 +21,16 @@ interface CoinOrbitProps {
   globeScale?: number;
   hideLabels?: boolean;
   isMobile?: boolean;
+  heroVisible?: boolean;
 }
 
-export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, index = 0, globeScale = 1, hideLabels = false, isMobile = false }: CoinOrbitProps) {
+export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, index = 0, globeScale = 1, hideLabels = false, isMobile = false, heroVisible = false }: CoinOrbitProps) {
   const coinRef = useRef<THREE.Group>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
+  const [tooltipPos, setTooltipPos] = useState<[number, number, number]>([1.5, 0.3, 0]);
+  const [currentScale, setCurrentScale] = useState(1);
+  const targetScaleRef = useRef(1);
   const baseAngle = index * (Math.PI * 2 / 5);
   const angleRef = useRef(baseAngle + (Math.random() * 0.4 - 0.2));
   const pulseRef = useRef(0);
@@ -73,8 +78,20 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
   const glowSphereDetail = isMobile ? 20 : 32;
   const coreSphereDetail = isMobile ? 12 : 16;
 
+  // Update target scale when hover state changes
+  useEffect(() => {
+    targetScaleRef.current = hovered ? 2.5 : 1;
+  }, [hovered]);
+
   useFrame(({ camera, clock }) => {
     if (coinRef.current) {
+      // Smoothly animate scale towards target
+      const lerpSpeed = 0.15; // Adjust for faster/slower animation
+      setCurrentScale((prev) => {
+        const diff = targetScaleRef.current - prev;
+        if (Math.abs(diff) < 0.001) return targetScaleRef.current;
+        return prev + diff * lerpSpeed;
+      });
       // Check if coin is occluded by the globe using ray-sphere intersection
       const coinWorldPos = new THREE.Vector3();
       coinRef.current.getWorldPosition(coinWorldPos);
@@ -117,6 +134,44 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
       coinRef.current.position.x = Math.cos(angleRef.current) * orbitRadius;
       coinRef.current.position.z = Math.sin(angleRef.current) * orbitRadius;
       coinRef.current.position.y = Math.sin(angleRef.current * 2) * 0.5;
+
+      // Update tooltip position based on actual screen position
+      // Project coin's world position to normalized device coordinates (NDC)
+      const coinScreenPos = new THREE.Vector3();
+      coinRef.current.getWorldPosition(coinScreenPos);
+
+      // Project to screen space
+      const projected = coinScreenPos.clone().project(camera);
+
+      // projected.x ranges from -1 (left) to +1 (right)
+      // projected.y ranges from -1 (bottom) to +1 (top)
+      let newPos: [number, number, number];
+
+      // Determine tooltip position based on where coin appears on screen
+      const screenX = projected.x;
+      const screenY = projected.y;
+
+      // Left side of screen: tooltip to RIGHT
+      if (screenX < -0.3) {
+        newPos = [1.5, 0.3, 0];
+      }
+      // Right side of screen: tooltip to LEFT
+      else if (screenX > 0.3) {
+        newPos = [-1.5, 0.3, 0];
+      }
+      // Center horizontally, check vertical position
+      else {
+        // Top of screen: tooltip BELOW
+        if (screenY > 0.3) {
+          newPos = [0, -1.5, 0];
+        }
+        // Bottom of screen: tooltip ABOVE
+        else {
+          newPos = [0, 1.5, 0];
+        }
+      }
+
+      setTooltipPos(newPos);
     }
 
     // Animate glow intensity
@@ -138,7 +193,11 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
   return (
     <group ref={coinRef}>
       {/* Outer glow sphere */}
-      <Sphere args={[0.38, glowSphereDetail, glowSphereDetail]} ref={glowRef}>
+      <Sphere
+        args={[0.38, glowSphereDetail, glowSphereDetail]}
+        ref={glowRef}
+        scale={currentScale}
+      >
         <primitive object={glowMaterial} attach="material" />
       </Sphere>
 
@@ -146,12 +205,13 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
       <Sphere
         args={[isMobile ? 0.3 : 0.25, sphereDetail, sphereDetail]}
         onClick={(e) => {
+          if (heroVisible) return;  // Ignore clicks before entry
           e.stopPropagation();
           onClick();
         }}
-        onPointerOver={() => !isMobile && setHovered(true)}
+        onPointerOver={() => !isMobile && !heroVisible && setHovered(true)}
         onPointerOut={() => !isMobile && setHovered(false)}
-        scale={hovered ? 1.15 : 1}
+        scale={currentScale}
       >
         <meshStandardMaterial
           color={coinColor}
@@ -164,7 +224,10 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
       </Sphere>
 
       {/* Inner bright core for extra shine */}
-      <Sphere args={[0.15, coreSphereDetail, coreSphereDetail]}>
+      <Sphere
+        args={[0.15, coreSphereDetail, coreSphereDetail]}
+        scale={currentScale}
+      >
         <meshBasicMaterial
           color={coinColor}
           transparent
@@ -172,30 +235,22 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
         />
       </Sphere>
 
-      {/* Stylized HTML label with effects - hidden when behind globe or when panel is open */}
-      {!isBehindGlobe && !hideLabels && (
+      {/* Always-on symbol badge - camera facing */}
+      {!heroVisible && !hideLabels && (
         <Html
-          position={[0, 0.55, 0]}
+          position={[0, 0.5, 0]}
           center
-          distanceFactor={isMobile ? 10 : 8}
-          style={{
-            transition: 'all 0.3s ease',
-            transform: hovered ? 'scale(1.1)' : 'scale(1)',
-          }}
+          style={{ pointerEvents: 'none' }}
         >
           <div
-            className="select-none pointer-events-none"
+            className="px-2 py-1 rounded-md text-xs font-bold tracking-wider"
             style={{
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-              fontSize: isMobile ? '12px' : '14px',
-              fontWeight: 700,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              color: hovered ? '#ffffff' : 'rgba(255,255,255,0.8)',
-              textShadow: hovered
-                ? `0 0 20px ${coinColor}, 0 0 40px ${coinColor}, 0 0 60px ${coinColor}40`
-                : `0 0 10px ${coinColor}60`,
-              transition: 'all 0.3s ease',
+              background: 'rgba(0,0,0,0.6)',
+              border: `1px solid ${coinColor}30`,
+              color: coinColor,
+              backdropFilter: 'blur(4px)',
+              opacity: isBehindGlobe ? 0 : 0.7,
+              transition: 'opacity 0.2s',
             }}
           >
             {coin.symbol}
@@ -203,36 +258,77 @@ export default function CoinOrbit({ coin, orbitRadius, orbitSpeed, onClick, inde
         </Html>
       )}
 
-      {/* Tooltip on hover - enhanced design (only when visible and panel not open, disabled on mobile) */}
-      {hovered && !isBehindGlobe && !hideLabels && !isMobile && (
-        <Html distanceFactor={10} position={[0, -0.6, 0]} center>
-          <div
-            className="rounded-xl px-5 py-4 pointer-events-none backdrop-blur-md"
+      {/* Detailed hover overlay - only when hovered */}
+      <Html
+        position={tooltipPos}
+        center
+        style={{ pointerEvents: 'none' }}
+      >
+        <AnimatePresence mode="wait">
+          {hovered && !isMobile && !heroVisible && !hideLabels && (
+            <motion.div
+            key="tooltip"
+            initial={{ opacity: 0, scale: 0.8, y: 10 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: 0,
+              transition: {
+                type: 'spring',
+                damping: 20,
+                stiffness: 300
+              }
+            }}
+            exit={{
+              opacity: 0,
+              scale: 0.6,
+              y: -10,
+              filter: 'blur(4px)',
+              transition: {
+                duration: 0.25,
+                ease: 'easeIn'
+              }
+            }}
+            className="rounded-xl px-6 py-4 min-w-[240px]"
             style={{
-              background: 'rgba(0,0,0,0.85)',
-              border: `1px solid ${coinColor}40`,
-              boxShadow: `0 0 30px ${coinColor}20, inset 0 0 20px ${coinColor}10`,
-              minWidth: '150px',
+              background: 'rgba(0,0,0,0.9)',
+              border: `2px solid ${coinColor}60`,
+              boxShadow: `0 0 30px ${coinColor}30, inset 0 0 20px ${coinColor}10`,
+              backdropFilter: 'blur(10px)',
             }}
           >
-            <p
-              className="text-[11px] mb-1.5 tracking-wider uppercase"
-              style={{ color: coinColor }}
-            >
+            {/* Coin name */}
+            <p className="text-white/60 text-xs uppercase tracking-wider mb-1">
               {coin.name}
             </p>
-            <p className="text-xl font-bold text-white mb-1.5 tracking-tight">
-              ${coin.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+
+            {/* Price */}
+            <p className="text-white text-2xl font-bold mb-2">
+              ${coin.price.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </p>
+
+            {/* 24h change */}
             <p
-              className="text-sm font-semibold"
+              className="text-sm font-semibold mb-3"
               style={{ color: coinColor }}
             >
-              {isPositive ? '▲' : '▼'} {isPositive ? '+' : ''}{coin.change24h.toFixed(2)}%
+              {isPositive ? '▲' : '▼'} {isPositive ? '+' : ''}{coin.change24h.toFixed(2)}% 24h
             </p>
-          </div>
-        </Html>
-      )}
+
+            {/* CTA */}
+            <div className="pt-3 border-t" style={{ borderColor: `${coinColor}30` }}>
+              <p className="text-white/50 text-xs text-center">
+                Click to analyze
+              </p>
+            </div>
+          </motion.div>
+          )}
+        </AnimatePresence>
+      </Html>
+
     </group>
   );
 }
